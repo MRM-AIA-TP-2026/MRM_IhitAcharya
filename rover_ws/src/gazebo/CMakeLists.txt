@@ -7,15 +7,6 @@ endif()
 
 
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(sensor_msgs REQUIRED)
-
-add_executable(sensor src/sensors.cpp)
-ament_target_dependencies(sensor rclcpp sensor_msgs)
-
-install(TARGETS
-  sensor
-  DESTINATION lib/${PROJECT_NAME})
 
 install(
   DIRECTORY launch model

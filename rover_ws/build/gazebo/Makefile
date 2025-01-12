@@ -197,43 +197,6 @@ gazebo_uninstall/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gazebo_uninstall.dir/build.make CMakeFiles/gazebo_uninstall.dir/build
 .PHONY : gazebo_uninstall/fast
 
-#=============================================================================
-# Target rules for targets named sensor
-
-# Build rule for target.
-sensor: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sensor
-.PHONY : sensor
-
-# fast build rule for target.
-sensor/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sensor.dir/build.make CMakeFiles/sensor.dir/build
-.PHONY : sensor/fast
-
-src/sensors.o: src/sensors.cpp.o
-.PHONY : src/sensors.o
-
-# target to build an object file
-src/sensors.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sensor.dir/build.make CMakeFiles/sensor.dir/src/sensors.cpp.o
-.PHONY : src/sensors.cpp.o
-
-src/sensors.i: src/sensors.cpp.i
-.PHONY : src/sensors.i
-
-# target to preprocess a source file
-src/sensors.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sensor.dir/build.make CMakeFiles/sensor.dir/src/sensors.cpp.i
-.PHONY : src/sensors.cpp.i
-
-src/sensors.s: src/sensors.cpp.s
-.PHONY : src/sensors.s
-
-# target to generate assembly for a file
-src/sensors.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sensor.dir/build.make CMakeFiles/sensor.dir/src/sensors.cpp.s
-.PHONY : src/sensors.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -249,10 +212,6 @@ help:
 	@echo "... test"
 	@echo "... gazebo_uninstall"
 	@echo "... uninstall"
-	@echo "... sensor"
-	@echo "... src/sensors.o"
-	@echo "... src/sensors.i"
-	@echo "... src/sensors.s"
 .PHONY : help
 
 

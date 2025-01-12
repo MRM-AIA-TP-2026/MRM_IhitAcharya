@@ -1,4 +1,3 @@
-/home/ihitexe/rover_ws/install/gazebo/lib/gazebo/sensor
 /home/ihitexe/rover_ws/install/gazebo/share/gazebo/launch/.vscode/settings.json
 /home/ihitexe/rover_ws/install/gazebo/share/gazebo/launch/.vscode/c_cpp_properties.json
 /home/ihitexe/rover_ws/install/gazebo/share/gazebo/launch/rviz_launch.py
