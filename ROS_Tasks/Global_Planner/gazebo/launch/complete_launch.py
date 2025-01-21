@@ -28,6 +28,7 @@ def generate_launch_description():
     name='joint_state_publisher',
     output='screen'
 )
+    
   
     rvizNode = Node(
         package='rviz2',
