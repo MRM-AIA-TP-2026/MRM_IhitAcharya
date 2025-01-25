@@ -52,9 +52,8 @@ def generate_launch_description():
         package='rover',  
         executable='gps',  
         name='gps',
-         output='screen',
-        parameters=[{'use_sim_time': True}],
-        arguments=['--ros-args', '--log-level', 'info']
+        output='screen',
+        parameters=[{'use_sim_time': True}]
     )
    
     launchDescriptionObject = LaunchDescription()

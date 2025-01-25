@@ -14,6 +14,9 @@ find_package(geometry_msgs REQUIRED)
 add_executable(gps src/gps.cpp)
 ament_target_dependencies(gps rclcpp sensor_msgs geometry_msgs)
 
+add_executable(gps2 src/gps2.cpp)
+ament_target_dependencies(gps2 rclcpp sensor_msgs geometry_msgs)
+
 install(
   DIRECTORY launch model rviz src
   DESTINATION share/${PROJECT_NAME}
@@ -22,6 +25,11 @@ install(
 install(TARGETS
   gps
   DESTINATION lib/${PROJECT_NAME})
+
+  install(TARGETS
+  gps2
+  DESTINATION lib/${PROJECT_NAME})
+
 
 
 if(BUILD_TESTING)

@@ -189,17 +189,22 @@
 
 <sensor name="gps_sensor" type="gps">
   <pose>0 0 0.275 0 0 0</pose> <!-- Position and orientation relative to the parent link -->
-  <plugin name="gps_plugin" filename="libgazebo_ros_gps.so">
+  <plugin name="gps_plugin" filename="libgazebo_ros_gps_sensor.so">
     <topicName>/gps</topicName>
     <frameName>gps_link</frameName>
-    <update_rate>1.0</update_rate>
+    <update_rate>10.0</update_rate>
     <reference_latitude>0.0</reference_latitude>
     <reference_longitude>0.0</reference_longitude>
     <reference_altitude>0.0</reference_altitude>
-    <gaussian_noise>0.0</gaussian_noise>
-    <drift>0.0</drift>
+    <gaussian_noise>0.00001</gaussian_noise>
+    <drift>0.00001</drift>
   </plugin>
 </sensor>
+
+
+
+
+
 
 
 
