@@ -1,7 +1,9 @@
 import os
+import subprocess
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription 
 from launch.actions import IncludeLaunchDescription
+from launch.actions import OpaqueFunction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 import xacro
@@ -29,7 +31,13 @@ def generate_launch_description():
     name='joint_state_publisher',
     output='screen'
 )
-    
+    def launch_in_new_terminal(context, *args, **kwargs):
+    # Replace 'gnome-terminal' with your terminal emulator if different
+        cmd = [
+        'gnome-terminal', '--', 
+        'ros2', 'run', 'rover', 'gps2'
+        ]
+        subprocess.Popen(cmd)
   
     rvizNode = Node(
         package='rviz2',
@@ -48,20 +56,14 @@ def generate_launch_description():
         parameters=[{'use_sim_time': True}],
     )
 
-    customCppNode = Node(
-        package='rover',  
-        executable='gps',  
-        name='gps',
-        output='screen',
-        parameters=[{'use_sim_time': True}]
-    )
+    cpp = OpaqueFunction(function=launch_in_new_terminal)
    
     launchDescriptionObject = LaunchDescription()
     launchDescriptionObject.add_action(gazeboLaunch)
     launchDescriptionObject.add_action(spawnModelNode)
     launchDescriptionObject.add_action(nodeRobotStatePublisher)
     launchDescriptionObject.add_action(rvizNode)
-    launchDescriptionObject.add_action(customCppNode)
+    launchDescriptionObject.add_action(cpp)
     launchDescriptionObject.add_action(joint_state_publisher)
     launchDescriptionObject.add_action(static_transform_publisher)
 

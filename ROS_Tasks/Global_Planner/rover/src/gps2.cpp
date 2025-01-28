@@ -10,9 +10,9 @@
 
 
 using namespace std::chrono_literals;
-long double target_lat_, target_lon_, current_lat_, current_lon_,x_mov,y_mov,distance, bearing,permb,permd;
+long double target_lat_, target_lon_, current_lat_, current_lon_,x_mov,y_mov,distance, bearing,permb,permd,origin_lat_ = 0.00000,origin_lon_ = 0.00000;
 int n = 0,m = -1;
-
+int temp;
 class GpsNavigator : public rclcpp::Node {
 public:
     GpsNavigator() : Node("gps")
@@ -34,17 +34,17 @@ public:
         current_lon_ = msg->longitude;
         m++;
         std::tie(permd, permb) = calculateDistanceAndBearing(current_lat_, current_lon_, target_lat_, target_lon_);
-        std::cout << permd << std::endl;
-        std::cout << permb << std::endl;
+        
         navigateToTarget();}
     }
 
     void navigateToTarget() {
     auto twist_msg = geometry_msgs::msg::Twist();
     if (n==0){
+
+
         if (permb < 0)
         permb += 2 * M_PI;
-
 
         if (permb > 1.5 * M_PI)
         permb -= 1.5 * M_PI;
@@ -54,20 +54,16 @@ public:
         permb -= M_PI/2;
         else
         permb = permb;
+
+        if (pow(pow(target_lat_,2) + pow(target_lon_,2) ,0.5 ) > pow(pow(current_lat_,2) + pow(current_lon_,2) ,0.5 ))
+        {permb = permb;}
+        else
+        permb = M_PI/2 - permb;   
     
-            std::cout << permd << std::endl;
-                    std::cout << permb << std::endl;
-
-       
-
-
     x_mov = permd * std::cos(permb);
     y_mov = permd * std::sin(permb);
 
-     std::cout << x_mov << std::endl;
-                std::cout << y_mov << std::endl;
-
-    if (x_mov<0)
+    if (target_lat_ - current_lat_ < 0) 
     {twist_msg.angular.z = 0.0;
     twist_msg.linear.x = -0.5;
     movement_pub_->publish(twist_msg);
@@ -78,7 +74,7 @@ public:
     movement_pub_->publish(twist_msg);
     n++;}
 
-    long double time = std::abs(x_mov/0.5);
+    long double time = std::abs(x_mov);
     std::cout << time << " Move in x" << std::endl;
     
     auto inter = std::chrono::milliseconds(static_cast<int>(time * 1000));
@@ -91,29 +87,35 @@ auto twist_msg = geometry_msgs::msg::Twist();
         twist_msg.linear.x = 0.0;
         twist_msg.angular.z = 0.0;
         movement_pub_->publish(twist_msg);
-        
-         if ((target_lat_ - current_lat_ > 0) && (target_lon_ - current_lon_ > 0))
+        sleep(2);
+        if ((target_lat_ - current_lat_ > 0) && (target_lon_ - current_lon_ > 0))
         {twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = 0.5;
+        twist_msg.angular.z = 1.0;
         movement_pub_->publish(twist_msg);
+        temp = 1.0;
         n++;}
         else if ((target_lat_ - current_lat_ > 0) && (target_lon_ - current_lon_ < 0))
         {twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = -0.5;
+        twist_msg.angular.z = 1.0;
         movement_pub_->publish(twist_msg);
+        temp = 1.0;
         n++;}
         else if ((target_lat_ - current_lat_ < 0) && (target_lon_ - current_lon_ < 0))
         {twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = 0.5;
+        twist_msg.angular.z = 1.0;
         movement_pub_->publish(twist_msg);
+        temp = 1.0;
         n++;}
         else
         {twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = -0.5;
+        twist_msg.angular.z = 1.0;
         movement_pub_->publish(twist_msg);
+        temp = 1.0;
         n++;}
-        timer_ = this->create_wall_timer(8800ms, std::bind(&GpsNavigator::Straight, this));
+        sleep(8);
         std::cout << "Rotating" << std::endl;
+        Straight();
+        
         
         }
 }
@@ -126,18 +128,18 @@ void Straight(){
     twist_msg.angular.z = 0.0;
     twist_msg.linear.x = 0.0;
     movement_pub_->publish(twist_msg);
-    if (y_mov<0)
-    {twist_msg.angular.z = 0.0;
-    twist_msg.linear.x = -0.5;
-    movement_pub_->publish(twist_msg);
-    n++;}
-    else
+    if (target_lon_ - current_lon_ < 0) 
     {twist_msg.angular.z = 0.0;
     twist_msg.linear.x = 0.5;
     movement_pub_->publish(twist_msg);
     n++;}
+    else
+    {twist_msg.angular.z = 0.0;
+    twist_msg.linear.x = -0.5;
+    movement_pub_->publish(twist_msg);
+    n++;}
     
-    long double time = std::abs(y_mov/0.5);
+    long double time = std::abs(y_mov);
     std::cout << time << " Move in y" << std::endl;
     auto inter = std::chrono::milliseconds(static_cast<int>(time * 1000));
     timer_ = this->create_wall_timer(inter, std::bind(&GpsNavigator::end, this));
@@ -148,6 +150,13 @@ void Straight(){
 
 void end(){
 auto twist_msg = geometry_msgs::msg::Twist();
+twist_msg.linear.x = 0.0;
+twist_msg.angular.z = 0.0;
+movement_pub_->publish(twist_msg);
+twist_msg.linear.x = 0.0;
+twist_msg.angular.z = -temp;
+movement_pub_->publish(twist_msg);
+sleep(7.5);
 twist_msg.linear.x = 0.0;
 twist_msg.angular.z = 0.0;
 movement_pub_->publish(twist_msg);
