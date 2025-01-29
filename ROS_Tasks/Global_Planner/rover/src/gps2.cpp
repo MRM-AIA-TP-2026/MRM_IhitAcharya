@@ -10,7 +10,7 @@
 
 
 using namespace std::chrono_literals;
-long double target_lat_, target_lon_, current_lat_, current_lon_,x_mov,y_mov,distance, bearing,permb,permd,origin_lat_ = 0.00000,origin_lon_ = 0.00000;
+long double woah,target_lat_, target_lon_, current_lat_,current_lon_,set_lat,set_lon,x_mov,y_mov,distance,bearing,permb,permd,origin_lat_ = 0.00000,origin_lon_ = 0.00000;
 int n = 0,m = -1;
 int temp;
 class GpsNavigator : public rclcpp::Node {
@@ -29,19 +29,53 @@ public:
     rclcpp::TimerBase::SharedPtr timer_;
 
     void gpsCallback(const sensor_msgs::msg::NavSatFix::SharedPtr msg) {
+            auto twist_msg = geometry_msgs::msg::Twist();
         if (m == 0)
-        {current_lat_ = msg->latitude;
+        {set_lat = msg->latitude;
+        set_lon = msg->longitude;
+            twist_msg.linear.x = 0.0;
+        twist_msg.angular.z = 1.0;
+        movement_pub_->publish(twist_msg);
+        sleep(4);
+        twist_msg.linear.x = 0.0;
+        twist_msg.angular.z = -1.0;
+        movement_pub_->publish(twist_msg);
+        sleep(5);
+        twist_msg.linear.x = 0.0;
+        twist_msg.angular.z = 0.0;
+        movement_pub_->publish(twist_msg);
+
+        current_lat_ = msg->latitude;
         current_lon_ = msg->longitude;
         m++;
+        if (std::abs(std::abs(set_lon) - std::abs(current_lon_)) > 0.000001)
+        { if (set_lon - current_lon_ > 0.000009)
+            {twist_msg.linear.x = 0.0;
+        twist_msg.angular.z = -1.0;
+        movement_pub_->publish(twist_msg);}
+        else
+        {twist_msg.linear.x = 0.0;
+        twist_msg.angular.z = 1.0;
+        movement_pub_->publish(twist_msg);}
+        sleep(5);
+        }
+        else
+        {
+        }
+        twist_msg.linear.x = 0.0;
+        twist_msg.angular.z = 0.0;
+        movement_pub_->publish(twist_msg);
+
         std::tie(permd, permb) = calculateDistanceAndBearing(current_lat_, current_lon_, target_lat_, target_lon_);
-        
         navigateToTarget();}
+
+        std::tie(distance,bearing) = calculateDistanceAndBearing(current_lat_, current_lon_, target_lat_, target_lon_);
+
     }
 
     void navigateToTarget() {
     auto twist_msg = geometry_msgs::msg::Twist();
     if (n==0){
-
 
         if (permb < 0)
         permb += 2 * M_PI;
