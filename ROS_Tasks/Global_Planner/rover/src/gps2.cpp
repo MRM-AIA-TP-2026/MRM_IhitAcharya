@@ -12,6 +12,7 @@
 using namespace std::chrono_literals;
 long double woah,target_lat_, target_lon_, current_lat_,current_lon_,set_lat,set_lon,x_mov,y_mov,distance,bearing,permb,permd,origin_lat_ = 0.00000,origin_lon_ = 0.00000;
 int n = 0,m = -1;
+int flag;
 int temp;
 class GpsNavigator : public rclcpp::Node {
 public:
@@ -24,6 +25,7 @@ public:
         movement_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
         gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("/gps", 10, std::bind(&GpsNavigator::gpsCallback, this, std::placeholders::_1));}
     }
+
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr movement_pub_;
     rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr gps_sub_;
     rclcpp::TimerBase::SharedPtr timer_;
@@ -31,16 +33,29 @@ public:
     void gpsCallback(const sensor_msgs::msg::NavSatFix::SharedPtr msg) {
             auto twist_msg = geometry_msgs::msg::Twist();
         if (m == 0)
-        {set_lat = msg->latitude;
+        {
+        set_lat = msg->latitude;
         set_lon = msg->longitude;
-            twist_msg.linear.x = 0.0;
+
+        twist_msg.linear.x = 0.0;
         twist_msg.angular.z = 1.0;
         movement_pub_->publish(twist_msg);
-        sleep(4);
+        sleep(3);
+
         twist_msg.linear.x = 0.0;
         twist_msg.angular.z = -1.0;
         movement_pub_->publish(twist_msg);
         sleep(5);
+
+        twist_msg.linear.x = 0.0;
+        twist_msg.angular.z = 0.0;
+        movement_pub_->publish(twist_msg);
+
+        twist_msg.linear.x = 1.0;
+        twist_msg.angular.z = 0.0;
+        movement_pub_->publish(twist_msg);
+        sleep(3);
+
         twist_msg.linear.x = 0.0;
         twist_msg.angular.z = 0.0;
         movement_pub_->publish(twist_msg);
@@ -48,23 +63,124 @@ public:
         current_lat_ = msg->latitude;
         current_lon_ = msg->longitude;
         m++;
-        if (std::abs(std::abs(set_lon) - std::abs(current_lon_)) > 0.000001)
-        { if (set_lon - current_lon_ > 0.000009)
-            {twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = -1.0;
-        movement_pub_->publish(twist_msg);}
-        else
-        {twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = 1.0;
-        movement_pub_->publish(twist_msg);}
-        sleep(5);
-        }
-        else
+        if (current_lon_ - set_lon > 0.0000009)
+            {
+            flag = 0;}
+        else if (set_lon - current_lon_ > 0.0000009)
         {
-        }
+            flag = 1;}
+
+        else if (set_lat - current_lat_ > 0.0000009)
+        { flag = 2;
+           }
+        else
+        {}
+        
+            twist_msg.linear.x = 0.0;  
+            twist_msg.angular.z = 0.0;
+            movement_pub_->publish(twist_msg);
+
+
+        twist_msg.linear.x = -1.0;
+        twist_msg.angular.z = 0.0;
+        movement_pub_->publish(twist_msg);
+        sleep(3);
+
         twist_msg.linear.x = 0.0;
         twist_msg.angular.z = 0.0;
         movement_pub_->publish(twist_msg);
+        sleep(3.5);
+
+        if (flag == 0)
+        {std::cout << "flag0";
+        twist_msg.linear.x = 0.0;
+        twist_msg.angular.z = 0.0;
+        movement_pub_->publish(twist_msg);
+            twist_msg.linear.x = 0.0;
+            twist_msg.angular.z = -1.0;
+            movement_pub_->publish(twist_msg);
+            sleep(10);
+        }
+        else if (flag == 1)
+        {std::cout << "flag1";
+        twist_msg.linear.x = 0.0;
+        twist_msg.angular.z = 0.0;
+        movement_pub_->publish(twist_msg);
+            twist_msg.linear.x = 0.0;  
+            twist_msg.angular.z = 1.0;
+            movement_pub_->publish(twist_msg);
+            sleep(10);
+        }
+        else if (flag == 2)
+        { std::cout << "flag2";
+        twist_msg.linear.x = 0.0;
+        twist_msg.angular.z = 0.0;
+        movement_pub_->publish(twist_msg);
+            twist_msg.linear.x = 0.0;  
+            twist_msg.angular.z = 1.0;
+            movement_pub_->publish(twist_msg);
+            sleep(5);
+            twist_msg.linear.x = 0.0;  
+            twist_msg.angular.z = 0.0;
+            movement_pub_->publish(twist_msg);
+            twist_msg.linear.x = 0.0;  
+            twist_msg.angular.z = 1.0;
+            movement_pub_->publish(twist_msg);
+            sleep(5);}
+        else
+        {}
+        // if (std::abs(std::abs(set_lon) - std::abs(current_lon_)) > 0.000001)
+        // { if (set_lon - current_lon_ > 0.0000009)
+        //     {twist_msg.linear.x = 0.0;
+        // twist_msg.angular.z = -1.0;
+        // movement_pub_->publish(twist_msg);}
+        // else if (set_lon - current_lon_ < -0.0000009)
+        // {
+        //     twist_msg.linear.x = 0.0;  
+        //     twist_msg.angular.z = 1.0;
+        //     movement_pub_->publish(twist_msg);}
+        
+        // else
+        // {twist_msg.linear.x = 0.0;
+        // twist_msg.angular.z = 1.0;
+        // movement_pub_->publish(twist_msg);}
+        // sleep(5);
+        // }
+
+        
+        // twist_msg.linear.x = 0.0;
+        // twist_msg.angular.z = 0.0;
+        // movement_pub_->publish(twist_msg);
+
+        // twist_msg.linear.x = 1.0;
+        // twist_msg.angular.z = 0.0;
+        // movement_pub_->publish(twist_msg);
+        // sleep(1.5);
+
+        // twist_msg.linear.x = 0.0;
+        // twist_msg.angular.z = 0.0;
+        // movement_pub_->publish(twist_msg);
+
+        // if (set_lon - current_lon_ > 0.0000009)
+        //     {twist_msg.linear.x = 0.0;
+        // twist_msg.angular.z = -1.0;
+        // movement_pub_->publish(twist_msg);
+        // sleep(5);}
+        // else if (set_lon - current_lon_ < -0.0000009)
+        // {
+        //     twist_msg.linear.x = 0.0;  
+        //     twist_msg.angular.z = 1.0;
+        //     movement_pub_->publish(twist_msg);
+        //     sleep(5);}
+        
+        // else
+        // {twist_msg.linear.x = 0.0;
+        // twist_msg.angular.z = 0.0;
+        // movement_pub_->publish(twist_msg);}
+
+        // twist_msg.linear.x = 0.0;
+        // twist_msg.angular.z = 0.0;
+        // movement_pub_->publish(twist_msg);
 
         std::tie(permd, permb) = calculateDistanceAndBearing(current_lat_, current_lon_, target_lat_, target_lon_);
         navigateToTarget();}
