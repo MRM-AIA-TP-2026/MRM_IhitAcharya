@@ -11,7 +11,8 @@
 
 using namespace std::chrono_literals;
 long double woah,target_lat_, target_lon_, current_lat_,current_lon_,set_lat,set_lon,x_mov,y_mov,distance,bearing,permb,permd,origin_lat_ = 0.00000,origin_lon_ = 0.00000;
-int n = -1,m = -1;
+int n = 0,m = -1;
+int q = 0;
 int flag;
 int temp;
 class GpsNavigator : public rclcpp::Node {
@@ -32,10 +33,9 @@ public:
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::TimerBase::SharedPtr timer_func;
 
-    void gpsCallback(const sensor_msgs::msg::NavSatFix::SharedPtr msg) {
+    void gpsCallback( sensor_msgs::msg::NavSatFix::SharedPtr msg) {
         auto twist_msg = geometry_msgs::msg::Twist();
-        current_lat_ = msg->latitude;
-        current_lon_ = msg->longitude;
+        
         if (m == 0)
         {
         
@@ -47,7 +47,7 @@ public:
         twist_msg.linear.x = 0.0;
         twist_msg.angular.z = 1.0;
         movement_pub_->publish(twist_msg);
-        sleep(4);
+        sleep(6);
 
         twist_msg.linear.x = 0.0;
         twist_msg.angular.z = -1.0;
@@ -67,17 +67,24 @@ public:
         twist_msg.angular.z = 0.0;
         movement_pub_->publish(twist_msg);
         m++;
+        
+    }
+        
+        current_lat_ = msg->latitude;
+        current_lon_ = msg->longitude;
         navigateToTarget();
-    }
+        q++;
         
-        
     }
+
+
+   
 
     void navigateToTarget() {
     auto twist_msg = geometry_msgs::msg::Twist();
-    if (n==0){
+    if (n==0 && q > 18){
         sleep(2);
-
+        
         if (std::abs(current_lon_ - set_lon) > std::abs(set_lat - current_lat_))
         {
             if (current_lon_ - set_lon > 0.00002)
@@ -104,7 +111,7 @@ public:
         twist_msg.linear.x = -1.5;
         twist_msg.angular.z = 0.0;
         movement_pub_->publish(twist_msg);
-        sleep(3);
+        sleep(2.5);
 
         twist_msg.linear.x = 0.0;
         twist_msg.angular.z = 0.0;
@@ -119,7 +126,7 @@ public:
             twist_msg.linear.x = 0.0;
             twist_msg.angular.z = 1.0;
             movement_pub_->publish(twist_msg);
-            sleep(12);
+            sleep(8);
         }
         else if (flag == 1)
         {std::cout << "flag1";
@@ -139,14 +146,18 @@ public:
             twist_msg.linear.x = 0.0;  
             twist_msg.angular.z = 1.0;
             movement_pub_->publish(twist_msg);
-            sleep(5);
+            sleep(8);
+            
             twist_msg.linear.x = 0.0;  
             twist_msg.angular.z = 0.0;
             movement_pub_->publish(twist_msg);
             twist_msg.linear.x = 0.0;  
             twist_msg.angular.z = 1.0;
             movement_pub_->publish(twist_msg);
-            sleep(5);}
+            sleep(8);
+            twist_msg.linear.x = 0.0;  
+            twist_msg.angular.z = 0.0;
+            movement_pub_->publish(twist_msg);}
         else if (flag == 3)
         {std::cout << "flag3";
             twist_msg.linear.x = 0.0;  
@@ -154,9 +165,11 @@ public:
         movement_pub_->publish(twist_msg);}
             else
             {}
-        m++;
         std::tie(permd, permb) = calculateDistanceAndBearing(set_lat, set_lon, target_lat_, target_lon_);
         
+
+
+
         if (permb < 0)
         permb += 2 * M_PI;
 
@@ -179,25 +192,27 @@ public:
     {twist_msg.angular.z = 0.0;
     twist_msg.linear.x = 0.5;
     movement_pub_->publish(twist_msg);
-    n++;}
+    }
     else if (target_lat_ - current_lat_ < 0)
-    {{
+    {
     twist_msg.angular.z = 0.0;
     twist_msg.linear.x = -0.5;
     movement_pub_->publish(twist_msg);
-    n++;}}
+    }
     else
-    {end();}
+    {}
     
 
     long double time = std::abs(x_mov);
     std::cout << time << " Move in x" << std::endl;
     
     auto inter = std::chrono::milliseconds(static_cast<int>(time * 1000));
-    timer_ = this->create_wall_timer(inter, std::bind(&GpsNavigator::Turn, this));}
-    if (n == 0)
-    {n++;
-    navigateToTarget();}
+    timer_ = this->create_wall_timer(inter, std::bind(&GpsNavigator::Turn, this));
+    n++;
+    }
+    else
+    {q ++;}
+
     }
 
 void Turn(){ 
@@ -208,32 +223,49 @@ auto twist_msg = geometry_msgs::msg::Twist();
         movement_pub_->publish(twist_msg);
         sleep(2);
 
-        if ((target_lat_ - set_lat > 0) && (target_lon_ - set_lon > 0))
+
+        if (target_lon_ - current_lon_ > 0)
         {twist_msg.linear.x = 0.0;
         twist_msg.angular.z = -1.0;
         movement_pub_->publish(twist_msg);
-        n++;}
-
-        else if ((target_lat_ - set_lat > 0) && (target_lon_ - set_lon < 0))
-        {twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = 1.0;
-        movement_pub_->publish(twist_msg);
-        n++;}
-
-        else if ((target_lat_ - set_lat < 0) && (target_lon_ - set_lon < 0))
-        {twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = -1.0;
-        movement_pub_->publish(twist_msg);
-        n++;}
-
-        else if ((target_lat_ - set_lat < 0) && (target_lon_ - set_lon > 0))
-        {twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = 1.0;
-        movement_pub_->publish(twist_msg);
-        n++;}
+         }
         else
-        {end();}
+        {
+        twist_msg.linear.x = 0.0;
+        twist_msg.angular.z = 1.0;
+        movement_pub_->publish(twist_msg);
+        }
 
+        // if ((target_lat_ - set_lat > 0) && (target_lon_ - set_lon > 0))
+        // {twist_msg.linear.x = 0.0;
+        // twist_msg.angular.z = 1.0;
+        // movement_pub_->publish(twist_msg);
+        // std::cout << "first quad" << std::endl;
+        // n++;}
+
+        // else if ((target_lat_ - set_lat > 0) && (target_lon_ - set_lon < 0))
+        // {twist_msg.linear.x = 0.0;
+        // twist_msg.angular.z = -1.0;
+        // movement_pub_->publish(twist_msg);
+        // std::cout << "second quad" << std::endl;
+        // n++;}
+
+        // else if ((target_lat_ - set_lat < 0) && (target_lon_ - set_lon < 0))
+        // {twist_msg.linear.x = 0.0;
+        // twist_msg.angular.z = -1.0;
+        // movement_pub_->publish(twist_msg);
+        // std::cout << "third quad" << std::endl;
+        // n++;}
+
+        // else if ((target_lat_ - set_lat < 0) && (target_lon_ - set_lon > 0))
+        // {twist_msg.linear.x = 0.0;
+        // twist_msg.angular.z = 1.0;
+        // movement_pub_->publish(twist_msg);
+        // std::cout << "fourth quad" << std::endl;
+        // n++;}
+        // else
+        // {end();}
+        n++;
         sleep(10);
         std::cout << "Rotating" << std::endl;
         Straight();
