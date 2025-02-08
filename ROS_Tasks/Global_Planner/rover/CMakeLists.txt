@@ -10,12 +10,13 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 
 add_executable(gps src/gps.cpp)
-ament_target_dependencies(gps rclcpp sensor_msgs geometry_msgs)
+ament_target_dependencies(gps rclcpp sensor_msgs geometry_msgs tf2_geometry_msgs)
 
 add_executable(gps2 src/gps2.cpp)
-ament_target_dependencies(gps2 rclcpp sensor_msgs geometry_msgs)
+ament_target_dependencies(gps2 rclcpp sensor_msgs geometry_msgs tf2_geometry_msgs)
 
 install(
   DIRECTORY launch model rviz src

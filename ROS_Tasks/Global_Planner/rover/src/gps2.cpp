@@ -1,6 +1,10 @@
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <geometry_msgs/msg/twist.hpp>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 #include <cmath>
 #include <iostream>
 #include <chrono>
@@ -12,68 +16,60 @@
 using namespace std::chrono_literals;
 long double woah,target_lat_, target_lon_, current_lat_,current_lon_,set_lat,set_lon,x_mov,y_mov,distance,bearing,permb,permd,origin_lat_ = 0.00000,origin_lon_ = 0.00000;
 int n = 0,m = -1;
+int flag = 0 ;
+double yaw,yaw_rad;
 int q = 0;
-int flag;
 int temp;
 class GpsNavigator : public rclcpp::Node {
-public:
-    GpsNavigator() : Node("gps")
-    {if (m == -1)
-        {std::cout << "Input target latitude and longitude:" << std::endl;
-        std::cin >> target_lat_;
-        std::cin >> target_lon_;
-        m++;
-        movement_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
-        gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("/gps", 10, std::bind(&GpsNavigator::gpsCallback, this, std::placeholders::_1));}
+    public:
+        GpsNavigator() : Node("gps")
+        {
+            if (m == -1) {
+                std::cout << "Input target latitude and longitude:" << std::endl;
+                std::cin >> target_lat_;
+                std::cin >> target_lon_;
+                m++;
+                movement_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
+                imu_subscriber_ = this->create_subscription<sensor_msgs::msg::Imu>("/imu", 10, std::bind(&GpsNavigator::imuCallback, this, std::placeholders::_1));
+                gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("/gps", 10, std::bind(&GpsNavigator::gpsCallback, this, std::placeholders::_1));
+            }
+        }
     
-    }
-
-    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr movement_pub_;
-    rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr gps_sub_;
-    rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::TimerBase::SharedPtr timer_func;
-
+        rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr movement_pub_;
+        rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr gps_sub_;
+        rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscriber_;
+        rclcpp::TimerBase::SharedPtr timer_;
+        rclcpp::TimerBase::SharedPtr timer_func;
     void gpsCallback( sensor_msgs::msg::NavSatFix::SharedPtr msg) {
         auto twist_msg = geometry_msgs::msg::Twist();
-        
-        if (m == 0)
+        if (flag == 0)
+        {if (yaw >= 180)
+        {twist_msg.linear.x = 0.0;
+        twist_msg.angular.z = 1.0;
+        movement_pub_->publish(twist_msg);}
+    else
+    {twist_msg.linear.x = 0.0;
+        twist_msg.angular.z = -1.0;
+        movement_pub_->publish(twist_msg);}
+}
+
+        if ((yaw > 359.5 || yaw < 0.5) && flag == 0)
         {
-        
+            
+    
         set_lat = msg->latitude;
         set_lon = msg->longitude;
-        
-        std::cout << set_lat << std::endl;
-
-        twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = 1.0;
-        movement_pub_->publish(twist_msg);
-        sleep(6);
-
-        twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = -1.0;
-        movement_pub_->publish(twist_msg);
-        sleep(8);
-
+    
         twist_msg.linear.x = 0.0;
         twist_msg.angular.z = 0.0;
         movement_pub_->publish(twist_msg);
-
-        twist_msg.linear.x = 1.0;
-        twist_msg.angular.z = 0.0;
-        movement_pub_->publish(twist_msg);
-        sleep(3);
-
-        twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = 0.0;
-        movement_pub_->publish(twist_msg);
+        flag = 1;
         m++;
-        
+        navigateToTarget();
     }
         
         current_lat_ = msg->latitude;
         current_lon_ = msg->longitude;
-        navigateToTarget();
-        q++;
         
     }
 
@@ -82,91 +78,10 @@ public:
 
     void navigateToTarget() {
     auto twist_msg = geometry_msgs::msg::Twist();
-    if (n==0 && q > 18){
-        sleep(2);
-        
-        if (std::abs(current_lon_ - set_lon) > std::abs(set_lat - current_lat_))
-        {
-            if (current_lon_ - set_lon > 0.00002)
-            {flag = 0;}
-            else
-            {flag = 1;}
-
-        }
-        else
-        
-        {
-             if (set_lat - current_lat_ > 0.00002)
-            {flag = 2;}
-           else
-            {flag = 3;}
-        }
-      
-        
-            twist_msg.linear.x = 0.0;  
-            twist_msg.angular.z = 0.0;
-            movement_pub_->publish(twist_msg);
-
-
-        twist_msg.linear.x = -1.5;
-        twist_msg.angular.z = 0.0;
-        movement_pub_->publish(twist_msg);
-        sleep(2.5);
-
-        twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = 0.0;
-        movement_pub_->publish(twist_msg);
-        sleep(4.5);
-
-        if (flag == 0)
-        {std::cout << "flag0";
-        twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = 0.0;
-        movement_pub_->publish(twist_msg);
-            twist_msg.linear.x = 0.0;
-            twist_msg.angular.z = 1.0;
-            movement_pub_->publish(twist_msg);
-            sleep(8);
-        }
-        else if (flag == 1)
-        {std::cout << "flag1";
-        twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = 0.0;
-        movement_pub_->publish(twist_msg);
-            twist_msg.linear.x = 0.0;  
-            twist_msg.angular.z = -1.0;
-            movement_pub_->publish(twist_msg);
-            sleep(12);
-        }
-        else if (flag == 2)
-        { std::cout << "flag2";
-        twist_msg.linear.x = 0.0;
-        twist_msg.angular.z = 0.0;
-        movement_pub_->publish(twist_msg);
-            twist_msg.linear.x = 0.0;  
-            twist_msg.angular.z = 1.0;
-            movement_pub_->publish(twist_msg);
-            sleep(8);
-            
-            twist_msg.linear.x = 0.0;  
-            twist_msg.angular.z = 0.0;
-            movement_pub_->publish(twist_msg);
-            twist_msg.linear.x = 0.0;  
-            twist_msg.angular.z = 1.0;
-            movement_pub_->publish(twist_msg);
-            sleep(8);
-            twist_msg.linear.x = 0.0;  
-            twist_msg.angular.z = 0.0;
-            movement_pub_->publish(twist_msg);}
-        else if (flag == 3)
-        {std::cout << "flag3";
-            twist_msg.linear.x = 0.0;  
-        twist_msg.angular.z = 0.0;
-        movement_pub_->publish(twist_msg);}
-            else
-            {}
+    if (n==0 && (yaw > 359.5 || yaw < 0.5 )){
+    
         std::tie(permd, permb) = calculateDistanceAndBearing(set_lat, set_lon, target_lat_, target_lon_);
-        
+        flag = 1;
 
 
 
@@ -202,22 +117,22 @@ public:
     else
     {}
     
-
+    n++;
     long double time = std::abs(x_mov);
     std::cout << time << " Move in x" << std::endl;
     
     auto inter = std::chrono::milliseconds(static_cast<int>(time * 1000));
     timer_ = this->create_wall_timer(inter, std::bind(&GpsNavigator::Turn, this));
-    n++;
+    
     }
-    else
-    {q ++;}
+
 
     }
 
 void Turn(){ 
 auto twist_msg = geometry_msgs::msg::Twist();
         if (n == 1){
+            std::cout << "Rotating" << std::endl;
         twist_msg.linear.x = 0.0;
         twist_msg.angular.z = 0.0;
         movement_pub_->publish(twist_msg);
@@ -235,39 +150,10 @@ auto twist_msg = geometry_msgs::msg::Twist();
         twist_msg.angular.z = 1.0;
         movement_pub_->publish(twist_msg);
         }
-
-        // if ((target_lat_ - set_lat > 0) && (target_lon_ - set_lon > 0))
-        // {twist_msg.linear.x = 0.0;
-        // twist_msg.angular.z = 1.0;
-        // movement_pub_->publish(twist_msg);
-        // std::cout << "first quad" << std::endl;
-        // n++;}
-
-        // else if ((target_lat_ - set_lat > 0) && (target_lon_ - set_lon < 0))
-        // {twist_msg.linear.x = 0.0;
-        // twist_msg.angular.z = -1.0;
-        // movement_pub_->publish(twist_msg);
-        // std::cout << "second quad" << std::endl;
-        // n++;}
-
-        // else if ((target_lat_ - set_lat < 0) && (target_lon_ - set_lon < 0))
-        // {twist_msg.linear.x = 0.0;
-        // twist_msg.angular.z = -1.0;
-        // movement_pub_->publish(twist_msg);
-        // std::cout << "third quad" << std::endl;
-        // n++;}
-
-        // else if ((target_lat_ - set_lat < 0) && (target_lon_ - set_lon > 0))
-        // {twist_msg.linear.x = 0.0;
-        // twist_msg.angular.z = 1.0;
-        // movement_pub_->publish(twist_msg);
-        // std::cout << "fourth quad" << std::endl;
-        // n++;}
-        // else
-        // {end();}
+     
         n++;
         sleep(10);
-        std::cout << "Rotating" << std::endl;
+        
         Straight();
         
         
@@ -307,7 +193,21 @@ rclcpp::shutdown();
 exit(0);
 }
 
+void imuCallback(const sensor_msgs::msg::Imu::SharedPtr msg) {
+    // Extract quaternion from the IMU message
+    double qx = msg->orientation.x;
+        double qy = msg->orientation.y;
+        double qz = msg->orientation.z;
+        double qw = msg->orientation.w;
 
+        double siny_cosp = 2 * (qw * qz + qx * qy);
+        double cosy_cosp = 1 - 2 * (qy * qy + qz * qz);
+        yaw = atan2(siny_cosp, cosy_cosp) * (180.0 / M_PI);
+
+        if (yaw < 0)
+            yaw += 360.0;
+ 
+}
 
     std::pair<long double, long double> calculateDistanceAndBearing(long double lat1, long double lon1, long double lat2, long double lon2) {
         const long double deg_to_rad = M_PI / 180.0;
