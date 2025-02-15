@@ -100,7 +100,7 @@ exit(0);}
                 twist_msg.angular.z = 0.0;
                 movement_pub_->publish(twist_msg);
                 dealing_obstacle = 1;
-                escape_local_minimum();
+                escape_local_minimum(min_index,msg);
                 
                 }
             else if (min_distance < 1.5) {
@@ -144,18 +144,18 @@ exit(0);}
             y = 1;
             sleep(1);
             dealing_obstacle = 0;
-            
+            stuck_counter = 0;
             
         }
 
 
-        void escape_local_minimum() {
-            RCLCPP_WARN(this->get_logger(), "Detected local minimum, executing recovery maneuver");
+        void escape_local_minimum(int obstacle_index, const sensor_msgs::msg::LaserScan::SharedPtr msg) {
+            float angle_to_obstacle = msg->angle_min + obstacle_index * msg->angle_increment;
             auto cmd = geometry_msgs::msg::Twist();
-            if (min_index <= 90 || min_index >= 270)
+            if (angle_to_obstacle > 0)
                 {cmd.linear.x = 0.3;
                     cmd.angular.z = -0.5;}
-                else
+            else
                 {cmd.linear.x = -0.3;
                     cmd.angular.z = 0.5;}
             
@@ -175,11 +175,11 @@ exit(0);}
         if (flag == 0)
         {if (local_min == 0 )
             {twist_msg.linear.x = 0.05;
-            twist_msg.angular.z = -1.0;
+            twist_msg.angular.z = -1.5;
             movement_pub_->publish(twist_msg);}
         else
         {twist_msg.linear.x = -0.05;
-            twist_msg.angular.z = 1.0;
+            twist_msg.angular.z = 1.5;
             movement_pub_->publish(twist_msg);
         }
             y = 0;
@@ -190,8 +190,6 @@ std::tie(permd, permb) = calculateDistanceAndBearing(current_lat_, current_lon_,
 if (target_lon_ - current_lon_ > 0)
 {permb += 180; }
 
-std::cout << "Permb : " << permb << std::endl;
-std::cout << "Yaw : " << yaw << std::endl;
 
     if (((yaw + permb < 360.5) && (yaw+permb > 359.5)) && flag == 1)
         {flag = 2;
@@ -278,20 +276,6 @@ void imuCallback(const sensor_msgs::msg::Imu::SharedPtr msg) {
         long double bearing = std::atan2(y, x);
 
         bearing *= (180.0 / M_PI);
-
-        // if ((lat2 - lat1 > 0) && (lon2 - lon1 > 0))
-        // {
-        //     bearing += 180;
-        // }
-        // else if ((lat2 - lat1 < 0) && (lon2 - lon1 > 0))
-        // {
-        //     bearing += 270;}
-        // else if ((lat2 - lat1 > 0) && (lon2 - lon1 < 0))
-        // {
-        //     bearing += 90;
-        // }
-        // else
-        // {}
 
         if (bearing < 0)
         {bearing += 360;}

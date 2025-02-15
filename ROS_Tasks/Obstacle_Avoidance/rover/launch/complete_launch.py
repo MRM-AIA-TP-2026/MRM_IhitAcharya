@@ -14,7 +14,7 @@ def generate_launch_description():
     robotXacroname = 'rover'
     namePackage = 'rover'
     modelFileRelativePath = 'model/rover.xacro'
-    worldFileRelativePath = 'model/world.world'
+    worldFileRelativePath = 'model/obstacle_world.sdf'
     rvizFileRelativePath = 'rviz/custom_config.rviz'
     pathModelFile = os.path.join(get_package_share_directory(namePackage),modelFileRelativePath)
     pathWorldFile = os.path.join(get_package_share_directory(namePackage),worldFileRelativePath)
