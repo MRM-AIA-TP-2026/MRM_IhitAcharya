@@ -2,10 +2,10 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name= "rover">
 
 <xacro:property name = "base_link_x" value = "0.5"/>
-<xacro:property name = "base_link_y" value = "1"/>
+<xacro:property name = "base_link_y" value = "0.5"/>
 <xacro:property name = "base_link_z" value = "0.25"/>
 
-<xacro:property name = "wheel_link_radius" value = "0.15"/>
+<xacro:property name = "wheel_link_radius" value = "0.05"/>
 <xacro:property name = "wheel_link_length" value = "0.05"/>
 <xacro:property name = "wheel_link_z" value = "0.075"/>
 
@@ -71,7 +71,7 @@
     <link name = "base_link">
         <visual>
             <geometry>
-                <box size = "${base_link_x} ${base_link_y} ${base_link_z}"/>   
+                <box size = "${base_link_x} ${base_link_x} ${base_link_z}"/>   
             </geometry>
             <origin xyz = " 0 0 0.125" rpy = "0 0 0"/>
             <material name = "black"/>
@@ -102,7 +102,7 @@
 <joint name = "left_front_wheel_joint" type = "continuous">
     <parent link = "base_link"/>
     <child link = "left_front_link"/>
-    <origin xyz = "0.275 ${-base_link_y/2-wheel_link_length/2} ${wheel_link_z}" rpy = "0 0 0" />
+    <origin xyz = "0.275 ${-base_link_x/2-wheel_link_length/2+0.1} ${wheel_link_z}" rpy = "0 0 0" />
     <axis xyz ="1 0 0"/>
     <limit effort = "1000" velocity = "1000"/>
     <dynamics damping = "1.0" friction = "1.0"/>
@@ -140,7 +140,7 @@
 <joint name = "right_front_wheel_joint" type = "continuous">
     <parent link = "base_link"/>
     <child link = "right_front_link"/>
-    <origin xyz = "-0.275 ${-base_link_y/2-wheel_link_length/2} ${wheel_link_z}" rpy = "0 0 0" />
+    <origin xyz = "-0.275 ${-base_link_x/2-wheel_link_length/2+0.1} ${wheel_link_z}" rpy = "0 0 0" />
     <axis xyz ="1 0 0"/>
     <limit effort = "1000" velocity = "1000"/>
     <dynamics damping = "1.0" friction = "1.0"/>
@@ -170,22 +170,19 @@
     </collision>
 
   <xacro:inertial_wheel/>   
-   
-   
+      
     </link>
 
 
 <joint name = "left_back_wheel_joint" type = "continuous">
     <parent link = "base_link"/>
     <child link = "left_back_link"/>
-    <origin xyz = "0.275 ${base_link_y/2+wheel_link_length/2} ${wheel_link_z}" rpy = "0 0 0" />
+    <origin xyz = "0.275 ${base_link_x/2+wheel_link_length/2-0.1} ${wheel_link_z}" rpy = "0 0 0" />
     <axis xyz ="1 0 0"/>
     <limit effort = "1000" velocity = "1000"/>
     <dynamics damping = "1.0" friction = "1.0"/>
 
-
 </joint>
-
 
 
 
@@ -215,15 +212,11 @@
 <joint name = "right_back_wheel_joint" type = "continuous">
     <parent link = "base_link"/>
     <child link = "right_back_link"/>
-    <origin xyz = "-0.275 ${base_link_y/2+wheel_link_length/2} ${wheel_link_z}" rpy = "0 0 0" />
+    <origin xyz = "-0.275 ${base_link_x/2+wheel_link_length/2-0.1} ${wheel_link_z}" rpy = "0 0 0" />
     <axis xyz ="1 0 0"/>
     <limit effort = "1000" velocity = "1000"/>
     <dynamics damping = "1.0" friction = "1.0"/>
-
-
 </joint>
-
-
 
 
     <link name = "right_back_link">
@@ -250,32 +243,10 @@
     </link>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <joint name = "lidar_joint" type = "fixed">
     <parent link = "base_link"/>
     <child link = "lidar_link"/>
-    <origin xyz = "0 0.45 0.275" rpy = "0 0 0" />
+    <origin xyz = "0 0.125 0.275" rpy = "0 0 0" />
 
 </joint>
 
@@ -296,43 +267,6 @@
       <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
     </inertial>
   </link>
-
-  <!-- Gazebo Plugin for Lidar -->
- <!-- <gazebo reference="lidar_link">
-    <sensor name="lidar" type="ray">
-      <pose>0 0 0 0 0 0 0</pose>
-      <always_on>true</always_on>
-      <visualize>true</visualize>
-      <update_rate>10</update_rate> -->
-      <!-- <ray>
-        <scan>
-          <horizontal>
-            <samples>360</samples>
-            <resolution>1.00000</resolution>
-            <min_angle>-1.57</min_angle>
-            <max_angle>1.57</max_angle>
-          </horizontal>
-        </scan>
-        <range>
-          <min>0.1</min>
-          <max>10</max>
-          <resolution>0.01</resolution>
-        </range>
-        <noise>
-          <type>gaussian</type>
-          <mean>0.0</mean>
-          <stddev>0.01</stddev>
-        </noise>
-      </ray> -->
-      <!-- <plugin name="scan" filename="libgazebo_ros_ray_sensor.so">
-        <ros>
-          <remapping>~/out:=scan</remapping>
-        </ros>
-        <output_type>sensor_msgs/LaserScan</output_type>
-        <frame_name>lidar_link</frame_name>
-      </plugin>
-    </sensor>
-  </gazebo> -->
 
 
  <gazebo reference="lidar_link">
@@ -398,8 +332,8 @@
 
 <updateRate>$10</updateRate>
 
-<wheel_diameter>0.15</wheel_diameter>
-<wheel_diameter>0.15</wheel_diameter>
+<wheel_diameter>0.1</wheel_diameter>
+<wheel_diameter>0.1</wheel_diameter>
 
 <max_wheel_torque>2000</max_wheel_torque>
 <max_wheel_acceleration>5.0</max_wheel_acceleration>
@@ -436,7 +370,7 @@
 <joint name = "imu_joint" type = "fixed">
     <parent link = "base_link"/>
     <child link = "imu_link"/>
-    <origin xyz = "0 -0.45 0.275" rpy = "1.57 0 -3.14" />
+    <origin xyz = "0 -0.125 0.275" rpy = "1.57 0 -3.14" />
 
 </joint>
 

@@ -116,21 +116,19 @@
         <plugin name='diff_drive' filename='libgazebo_ros_diff_drive.so'>
             <num_wheel_pairs>2</num_wheel_pairs>
 
-            <!-- wheels -->
-            <left_joint>left_front_wheel_joint</left_joint>
-            
+      
+            <left_joint>left_front_wheel_joint</left_joint>      
             <right_joint>right_front_wheel_joint</right_joint>
-           
+
            <left_joint>left_back_wheel_joint</left_joint>
-            
             <right_joint>right_back_wheel_joint</right_joint>
 
-            <!-- kinematics -->
+          
             <wheel_separation>0.45</wheel_separation>
-            <wheel_diameter>0.2</wheel_diameter>
+            <wheel_diameter>0.1</wheel_diameter>
 
             <wheel_separation>0.45</wheel_separation>
-            <wheel_diameter>0.2</wheel_diameter>
+            <wheel_diameter>0.1</wheel_diameter>
 
             <!-- limits -->
             <max_wheel_torque>10</max_wheel_torque>
@@ -147,39 +145,8 @@
     </gazebo>
 
 
-<!-- hokuyo -->
-<!-- <gazebo>
-    <sensor name="lidar_link" type="ray">
-  <update_rate>10.0</update_rate>
-  <range>
-    <min>0.1</min>
-    <max>10.0</max>
-  </range>
-  <ray>
-    <scan>
-      <horizontal>
-        <samples>360</samples>
-        <resolution>1</resolution>
-        <min_angle>-1.57</min_angle>
-        <max_angle>1.57</max_angle>
-      </horizontal>
-    </scan>
-  </ray>
-  <plugin name="point_cloud_plugin" filename="libgazebo_ros_gpu_laser.so">
-        <topic_name>/lidar/points</topic_name>
-        <frame_name>lidar_link</frame_name>
-      </plugin>
-
-      <plugin name="scan_plugin" filename="libgazebo_ros_gpu_laser.so">
-        <topic_name>/lidar/scan</topic_name>
-        <frame_name>lidar_link</frame_name>
-      </plugin>
-</sensor>
-</gazebo> -->
-        
-
 <sensor name="imu_link" type="imu">
-  <pose>0 0 0 0 0 0</pose> <!-- Position and orientation relative to the parent link -->
+  <pose>0 0 0 0 0 0</pose>
   <plugin name="imu_plugin" filename="libgazebo_ros_imu.so">
     <ros>
       <namespace>/robot</namespace>
@@ -193,7 +160,7 @@
 
 
 <sensor name="gps_sensor" type="gps">
-  <pose>0 0 0.275 0 0 0</pose> <!-- Position and orientation relative to the parent link -->
+  <pose>0 0 0.275 0 0 0</pose>
   <plugin name="gps_plugin" filename="libgazebo_ros_gps.so">
     <topicName>/gps</topicName>
     <frameName>gps_link</frameName>
@@ -209,7 +176,7 @@
 
 
 <sensor name="camera_sensor" type="camera">
-  <pose>0 0 0.3 0 0 0</pose> <!-- Position and orientation relative to the parent link -->
+  <pose>0 0 0.3 0 0 0</pose> 
   <camera>
     <horizontal_fov>1.047</horizontal_fov>
     <image>

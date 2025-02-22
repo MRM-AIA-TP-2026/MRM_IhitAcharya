@@ -19,6 +19,7 @@
 
 
 using namespace std::chrono_literals;
+int dealt = 0;
 long double woah,target_lat_, target_lon_, current_lat_,current_lon_,set_lat,set_lon,x_mov,y_mov,distance,bearing,permb,permd,origin_lat_ = 0.00000,origin_lon_ = 0.00000;
 int n = 0,m = -1;
 double target_yaw;
@@ -40,6 +41,7 @@ int local_min = 0;
 int min_index = -1;
 float max_distance = -1;
 int max_index = -1;
+
 
 
 class GpsNavigator : public rclcpp::Node {
@@ -89,12 +91,11 @@ exit(0);}
                 {max_distance = msg->ranges[i];
                 max_index = i;
                 }
-         
-
+        
             }
-
             least = min_distance;
-            if ((min_distance < 0.5) || (stuck_counter > 5))
+                
+            if (( (min_distance < 1.0) && ((((min_index > 0) && (min_index < 10)) || ((min_index > 350) && (min_index < 360))) || ((min_index >170) && (min_index < 190)))) || (stuck_counter > 5))
             {auto twist_msg = geometry_msgs::msg::Twist();
                 twist_msg.angular.x = 0.0;
                 twist_msg.angular.z = 0.0;
@@ -103,7 +104,7 @@ exit(0);}
                 escape_local_minimum(min_index,msg);
                 
                 }
-            else if (min_distance < 1.5) {
+            else if (min_distance < 1.5 && ((((min_index > 0) && (min_index < 10)) || ((min_index > 350) && (min_index < 360))) || ((min_index >170) && (min_index < 190)))) {
                 auto twist_msg = geometry_msgs::msg::Twist();
                 movement_pub_->publish(twist_msg);
                 
@@ -138,7 +139,7 @@ exit(0);}
             auto cmd = geometry_msgs::msg::Twist();
             float angle_to_obstacle = msg->angle_min + obstacle_index * msg->angle_increment;            
             cmd.linear.x = -0.1;
-            cmd.angular.z = (angle_to_obstacle > 0) ? -0.5 : 0.5;
+            cmd.angular.z = (angle_to_obstacle > 0) ? -0.1 : 0.1;
             movement_pub_->publish(cmd);
             local_min = 1;
             y = 1;
@@ -153,16 +154,19 @@ exit(0);}
             float angle_to_obstacle = msg->angle_min + obstacle_index * msg->angle_increment;
             auto cmd = geometry_msgs::msg::Twist();
             if (angle_to_obstacle > 0)
-                {cmd.linear.x = 0.3;
-                    cmd.angular.z = -0.5;}
+                {cmd.linear.x = 0.2;
+                    cmd.angular.z = -0.1;}
             else
-                {cmd.linear.x = -0.3;
-                    cmd.angular.z = 0.5;}
+                {cmd.linear.x = -0.2;
+                    cmd.angular.z = 0.1;}
             
             movement_pub_->publish(cmd);
             stuck_counter = 0;
             y = 1;
             rclcpp::sleep_for(std::chrono::seconds(2));
+            cmd.linear.x = 1.0;
+            dealt = 1;
+            movement_pub_->publish(cmd);
             dealing_obstacle = 0;
         }
 
@@ -175,11 +179,11 @@ exit(0);}
         if (flag == 0)
         {if (local_min == 0 )
             {twist_msg.linear.x = 0.05;
-            twist_msg.angular.z = -1.5;
+            twist_msg.angular.z = -0.1;
             movement_pub_->publish(twist_msg);}
         else
         {twist_msg.linear.x = -0.05;
-            twist_msg.angular.z = 1.5;
+            twist_msg.angular.z = 0.1;
             movement_pub_->publish(twist_msg);
         }
             y = 0;
